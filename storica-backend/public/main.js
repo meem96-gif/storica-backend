@@ -104,39 +104,86 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ---------------------------------------------------
+    // ---------------------------------------------------
   // 5. GALLERY LIGHTBOX (only runs if a .gallery-grid exists)
   // ---------------------------------------------------
   const galleryGrid = document.querySelector('.gallery-grid');
 
-  if (galleryGrid) {
+  if (galleryGrid && !document.getElementById('galleryLightbox')) {
     const lightbox = document.createElement('div');
     lightbox.className = 'lightbox';
-    lightbox.innerHTML = '<img src="" alt=""><span class="lightbox-close">&times;</span>';
+    lightbox.id = 'galleryLightbox';
+    lightbox.innerHTML = `
+      <span class="lightbox-prev">&#10094;</span>
+      <img src="" alt="">
+      <span class="lightbox-next">&#10095;</span>
+      <span class="lightbox-close">&times;</span>
+    `;
     document.body.appendChild(lightbox);
 
     const lightboxImg = lightbox.querySelector('img');
+    const prevBtn = lightbox.querySelector('.lightbox-prev');
+    const nextBtn = lightbox.querySelector('.lightbox-next');
+    const closeBtn = lightbox.querySelector('.lightbox-close');
+
+    let currentIndex = 0;
+    let allImages = [];
+
+    function showImage(index) {
+      if (index < 0) index = allImages.length - 1;
+      if (index >= allImages.length) index = 0;
+      currentIndex = index;
+      lightboxImg.src = allImages[currentIndex].src;
+      lightboxImg.alt = allImages[currentIndex].alt;
+    }
 
     galleryGrid.addEventListener('click', function (e) {
       if (e.target.tagName === 'IMG') {
-        lightboxImg.src = e.target.src;
-        lightboxImg.alt = e.target.alt;
+        allImages = Array.from(galleryGrid.querySelectorAll('img'));
+        currentIndex = allImages.indexOf(e.target);
+        showImage(currentIndex);
         lightbox.classList.add('open');
       }
     });
 
-    lightbox.addEventListener('click', function () {
+    prevBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showImage(currentIndex - 1);
+    });
+
+    nextBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showImage(currentIndex + 1);
+    });
+
+    closeBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
       lightbox.classList.remove('open');
+    });
+
+    // Keyboard arrows too
+    document.addEventListener('keydown', function (e) {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
+      if (e.key === 'ArrowRight') showImage(currentIndex + 1);
+      if (e.key === 'Escape') lightbox.classList.remove('open');
+    });
+
+    // Click outside image to close (but not when clicking the image itself)
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) {
+        lightbox.classList.remove('open');
+      }
     });
   }
 
   // ---------------------------------------------------
   // 6. CONTACT FORM VALIDATION (only runs if .contact-form exists)
   // ---------------------------------------------------
-  const contactForm = document.querySelector('.contact-form');
+    const contactForm = document.querySelector('.contact-form');
 
   if (contactForm) {
-    contactForm.addEventListener('submit', function (e) {
+    contactForm.addEventListener('submit', async function (e) {
       e.preventDefault();
 
       let isValid = true;
@@ -164,9 +211,29 @@ document.addEventListener('DOMContentLoaded', function () {
         isValid = false;
       }
 
-      if (isValid) {
-        alert('Thanks! This form is a demo — no message was actually sent.');
-        contactForm.reset();
+      if (!isValid) return;
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name.value.trim(),
+            email: email.value.trim(),
+            message: message.value.trim()
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert(data.message);
+          contactForm.reset();
+        } else {
+          alert(data.error || 'Something went wrong. Please try again.');
+        }
+      } catch (err) {
+        alert('Could not reach the server. Please try again later.');
       }
     });
   }
