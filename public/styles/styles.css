@@ -317,6 +317,17 @@ footer {
   -webkit-tap-highlight-color: transparent;
 }
 
+.lightbox img {
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+}
+.lightbox img.zoomed {
+  cursor: zoom-out;
+  transform: scale(1.8);
+  max-width: none;
+  max-height: none;
+}
+
 /* Scroll reveal */
 .reveal-on-scroll {
   opacity: 0;

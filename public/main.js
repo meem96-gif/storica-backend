@@ -101,17 +101,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const lightboxImg = lightbox.querySelector('img');
     const closeBtn = lightbox.querySelector('.lightbox-close');
+    
+    lightboxImg.addEventListener('click', function (e) {
+      e.stopPropagation(); // don't trigger the close-on-background-click
+      lightboxImg.classList.toggle('zoomed');
+    });
 
     let currentIndex = 0;
     let allImages = [];
 
-    function showImage(index) {
-      if (index < 0) index = allImages.length - 1;
-      if (index >= allImages.length) index = 0;
-      currentIndex = index;
-      lightboxImg.src = allImages[currentIndex].src;
-      lightboxImg.alt = allImages[currentIndex].alt;
-    }
+  function showImage(index) {
+   if (index < 0) index = allImages.length - 1;
+   if (index >= allImages.length) index = 0;
+   currentIndex = index;
+   lightboxImg.src = allImages[currentIndex].src;
+   lightboxImg.alt = allImages[currentIndex].alt;
+   lightboxImg.classList.remove('zoomed'); // reset zoom on image change
+  }
 
     galleryGrid.addEventListener('click', function (e) {
       if (e.target.tagName === 'IMG') {
@@ -137,12 +143,18 @@ document.addEventListener('DOMContentLoaded', function () {
     lightbox.addEventListener('click', function (e) {
       if (e.target === lightbox) lightbox.classList.remove('open');
     });
+    
+      
 
-    // Swipe (touch) support
+        // Swipe (touch) support
     let startX = 0;
     let isDragging = false;
 
     lightbox.addEventListener('touchstart', function (e) {
+      if (e.touches.length > 1) {
+        isDragging = false; // multi-touch = pinch zoom, not a swipe
+        return;
+      }
       startX = e.changedTouches[0].screenX;
       isDragging = true;
     });
