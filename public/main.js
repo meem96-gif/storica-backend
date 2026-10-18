@@ -81,27 +81,25 @@ document.addEventListener('DOMContentLoaded', function () {
     revealTargets.forEach(function (el) { revealObserver.observe(el); });
   }
 
-  // 5. GALLERY LIGHTBOX WITH PREV/NEXT
+    // ---------------------------------------------------
+  // 5. GALLERY LIGHTBOX WITH SWIPE/DRAG NAVIGATION
+  // ---------------------------------------------------
   const galleryGrid = document.querySelector('.gallery-grid');
 
   if (galleryGrid) {
     let lightbox = document.getElementById('galleryLightbox');
-    if (lightbox) lightbox.remove(); // remove any old/duplicate lightbox from HTML
+    if (lightbox) lightbox.remove();
 
     lightbox = document.createElement('div');
     lightbox.className = 'lightbox';
     lightbox.id = 'galleryLightbox';
     lightbox.innerHTML = `
-      <span class="lightbox-prev">&#10094;</span>
       <img src="" alt="">
-      <span class="lightbox-next">&#10095;</span>
       <span class="lightbox-close">&times;</span>
     `;
     document.body.appendChild(lightbox);
 
     const lightboxImg = lightbox.querySelector('img');
-    const prevBtn = lightbox.querySelector('.lightbox-prev');
-    const nextBtn = lightbox.querySelector('.lightbox-next');
     const closeBtn = lightbox.querySelector('.lightbox-close');
 
     let currentIndex = 0;
@@ -124,14 +122,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    prevBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      showImage(currentIndex - 1);
-    });
-    nextBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      showImage(currentIndex + 1);
-    });
     closeBtn.addEventListener('click', function (e) {
       e.stopPropagation();
       lightbox.classList.remove('open');
@@ -147,8 +137,49 @@ document.addEventListener('DOMContentLoaded', function () {
     lightbox.addEventListener('click', function (e) {
       if (e.target === lightbox) lightbox.classList.remove('open');
     });
-  }
 
+    // Swipe (touch) support
+    let startX = 0;
+    let isDragging = false;
+
+    lightbox.addEventListener('touchstart', function (e) {
+      startX = e.changedTouches[0].screenX;
+      isDragging = true;
+    });
+
+    lightbox.addEventListener('touchend', function (e) {
+      if (!isDragging) return;
+      const endX = e.changedTouches[0].screenX;
+      const distance = endX - startX;
+      if (Math.abs(distance) > 50) {
+        if (distance > 0) {
+          showImage(currentIndex - 1);
+        } else {
+          showImage(currentIndex + 1);
+        }
+      }
+      isDragging = false;
+    });
+
+    // Drag (mouse) support for desktop
+    lightbox.addEventListener('mousedown', function (e) {
+      startX = e.screenX;
+      isDragging = true;
+    });
+
+    lightbox.addEventListener('mouseup', function (e) {
+      if (!isDragging) return;
+      const distance = e.screenX - startX;
+      if (Math.abs(distance) > 50) {
+        if (distance > 0) {
+          showImage(currentIndex - 1);
+        } else {
+          showImage(currentIndex + 1);
+        }
+      }
+      isDragging = false;
+    });
+  }
   // 6. CONTACT FORM — CONNECTED TO BACKEND
   const contactForm = document.querySelector('.contact-form');
 
