@@ -5,10 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-  // ---------------------------------------------------
   // 1. MOBILE MENU TOGGLE
-  // (works even without the inline onclick in the HTML)
-  // ---------------------------------------------------
   const menuToggle = document.querySelector('.menu-toggle');
   const navLinks = document.querySelector('.nav-links');
 
@@ -16,8 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
     menuToggle.addEventListener('click', function () {
       navLinks.classList.toggle('open');
     });
-
-    // Close the menu if someone clicks a link inside it
     navLinks.querySelectorAll('a').forEach(function (link) {
       link.addEventListener('click', function () {
         navLinks.classList.remove('open');
@@ -25,9 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ---------------------------------------------------
-  // 2. SMOOTH SCROLL for in-page anchor links (href="#something")
-  // ---------------------------------------------------
+  // 2. SMOOTH SCROLL
   document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     link.addEventListener('click', function (e) {
       const targetId = this.getAttribute('href');
@@ -41,11 +34,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // ---------------------------------------------------
-  // 3. ANIMATED COUNTERS ("Some Facts" numbers count up)
-  // ---------------------------------------------------
+  // 3. ANIMATED COUNTERS
   const counters = document.querySelectorAll('.fact-card strong');
-
   if (counters.length) {
     const counterObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -55,20 +45,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     }, { threshold: 0.5 });
-
-    counters.forEach(function (el) {
-      counterObserver.observe(el);
-    });
+    counters.forEach(function (el) { counterObserver.observe(el); });
   }
 
   function animateCounter(el) {
-    const raw = el.textContent.replace(/,/g, '');       // "22,578" -> "22578"
+    const raw = el.textContent.replace(/,/g, '');
     const target = parseInt(raw, 10);
     if (isNaN(target)) return;
-
     const duration = 1200;
     const startTime = performance.now();
-
     function step(now) {
       const progress = Math.min((now - startTime) / duration, 1);
       const value = Math.floor(progress * target);
@@ -82,13 +67,8 @@ document.addEventListener('DOMContentLoaded', function () {
     requestAnimationFrame(step);
   }
 
-  // ---------------------------------------------------
-  // 4. SCROLL-REVEAL for sections (fade + slide up)
-  // Adds ".reveal" class handling; any element with
-  // class="reveal-on-scroll" will animate in.
-  // ---------------------------------------------------
+  // 4. SCROLL-REVEAL
   const revealTargets = document.querySelectorAll('.reveal-on-scroll');
-
   if (revealTargets.length) {
     const revealObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -98,47 +78,83 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     }, { threshold: 0.15 });
-
-    revealTargets.forEach(function (el) {
-      revealObserver.observe(el);
-    });
+    revealTargets.forEach(function (el) { revealObserver.observe(el); });
   }
 
-  // ---------------------------------------------------
-  // 5. GALLERY LIGHTBOX (only runs if a .gallery-grid exists)
-  // ---------------------------------------------------
+  // 5. GALLERY LIGHTBOX WITH PREV/NEXT
   const galleryGrid = document.querySelector('.gallery-grid');
 
   if (galleryGrid) {
-    const lightbox = document.createElement('div');
+    let lightbox = document.getElementById('galleryLightbox');
+    if (lightbox) lightbox.remove(); // remove any old/duplicate lightbox from HTML
+
+    lightbox = document.createElement('div');
     lightbox.className = 'lightbox';
-    lightbox.innerHTML = '<img src="" alt=""><span class="lightbox-close">&times;</span>';
+    lightbox.id = 'galleryLightbox';
+    lightbox.innerHTML = `
+      <span class="lightbox-prev">&#10094;</span>
+      <img src="" alt="">
+      <span class="lightbox-next">&#10095;</span>
+      <span class="lightbox-close">&times;</span>
+    `;
     document.body.appendChild(lightbox);
 
     const lightboxImg = lightbox.querySelector('img');
+    const prevBtn = lightbox.querySelector('.lightbox-prev');
+    const nextBtn = lightbox.querySelector('.lightbox-next');
+    const closeBtn = lightbox.querySelector('.lightbox-close');
+
+    let currentIndex = 0;
+    let allImages = [];
+
+    function showImage(index) {
+      if (index < 0) index = allImages.length - 1;
+      if (index >= allImages.length) index = 0;
+      currentIndex = index;
+      lightboxImg.src = allImages[currentIndex].src;
+      lightboxImg.alt = allImages[currentIndex].alt;
+    }
 
     galleryGrid.addEventListener('click', function (e) {
       if (e.target.tagName === 'IMG') {
-        lightboxImg.src = e.target.src;
-        lightboxImg.alt = e.target.alt;
+        allImages = Array.from(galleryGrid.querySelectorAll('img'));
+        currentIndex = allImages.indexOf(e.target);
+        showImage(currentIndex);
         lightbox.classList.add('open');
       }
     });
 
-    lightbox.addEventListener('click', function () {
+    prevBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showImage(currentIndex - 1);
+    });
+    nextBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showImage(currentIndex + 1);
+    });
+    closeBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
       lightbox.classList.remove('open');
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
+      if (e.key === 'ArrowRight') showImage(currentIndex + 1);
+      if (e.key === 'Escape') lightbox.classList.remove('open');
+    });
+
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) lightbox.classList.remove('open');
     });
   }
 
-  // ---------------------------------------------------
-  // 6. CONTACT FORM VALIDATION (only runs if .contact-form exists)
-  // ---------------------------------------------------
+  // 6. CONTACT FORM — CONNECTED TO BACKEND
   const contactForm = document.querySelector('.contact-form');
 
   if (contactForm) {
-    contactForm.addEventListener('submit', function (e) {
+    contactForm.addEventListener('submit', async function (e) {
       e.preventDefault();
-
       let isValid = true;
       clearErrors(contactForm);
 
@@ -150,7 +166,6 @@ document.addEventListener('DOMContentLoaded', function () {
         showError(name, 'Please enter your name.');
         isValid = false;
       }
-
       if (!email.value.trim()) {
         showError(email, 'Please enter your email.');
         isValid = false;
@@ -158,15 +173,31 @@ document.addEventListener('DOMContentLoaded', function () {
         showError(email, 'Please enter a valid email address.');
         isValid = false;
       }
-
       if (!message.value.trim()) {
         showError(message, 'Please write a short message.');
         isValid = false;
       }
+      if (!isValid) return;
 
-      if (isValid) {
-        alert('Thanks! This form is a demo — no message was actually sent.');
-        contactForm.reset();
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name.value.trim(),
+            email: email.value.trim(),
+            message: message.value.trim()
+          })
+        });
+        const data = await response.json();
+        if (data.success) {
+          alert(data.message);
+          contactForm.reset();
+        } else {
+          alert(data.error || 'Something went wrong. Please try again.');
+        }
+      } catch (err) {
+        alert('Could not reach the server. Please try again later.');
       }
     });
   }
@@ -174,7 +205,6 @@ document.addEventListener('DOMContentLoaded', function () {
   function isValidEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
-
   function showError(field, text) {
     field.style.borderColor = '#e04b4b';
     const errorEl = document.createElement('div');
@@ -185,12 +215,8 @@ document.addEventListener('DOMContentLoaded', function () {
     errorEl.style.marginTop = '-8px';
     field.insertAdjacentElement('afterend', errorEl);
   }
-
   function clearErrors(form) {
     form.querySelectorAll('.field-error').forEach(function (el) { el.remove(); });
-    form.querySelectorAll('input, textarea').forEach(function (el) {
-      el.style.borderColor = '';
-    });
+    form.querySelectorAll('input, textarea').forEach(function (el) { el.style.borderColor = ''; });
   }
-
 });

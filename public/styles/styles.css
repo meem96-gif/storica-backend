@@ -311,6 +311,22 @@ footer {
   line-height: 1;
 }
 
+.lightbox-prev,
+.lightbox-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 32px;
+  cursor: pointer;
+  padding: 10px 16px;
+  user-select: none;
+}
+.lightbox-prev { left: 20px; }
+.lightbox-next { right: 20px; }
+.lightbox-prev:hover,
+.lightbox-next:hover { opacity: 0.7; }
+
 /* Scroll reveal */
 .reveal-on-scroll {
   opacity: 0;
