@@ -156,22 +156,45 @@ document.addEventListener('DOMContentLoaded', function () {
     
       
 
-        // Swipe (touch) support
+         // Touch: swipe to navigate, pinch to zoom
     let startX = 0;
-    let isDragging = false;
+    let isSingleTouch = false;
+    let initialPinchDistance = 0;
+
+    function getPinchDistance(touches) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
 
     lightbox.addEventListener('touchstart', function (e) {
-      if (e.touches.length > 1) {
-        isDragging = false; // multi-touch = pinch zoom, not a swipe
-        return;
+      if (e.touches.length === 2) {
+        isSingleTouch = false;
+        initialPinchDistance = getPinchDistance(e.touches);
+      } else if (e.touches.length === 1) {
+        isSingleTouch = true;
+        startX = e.touches[0].clientX;
       }
-      startX = e.changedTouches[0].screenX;
-      isDragging = true;
     });
 
+    lightbox.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        isSingleTouch = false;
+        const newDistance = getPinchDistance(e.touches);
+        const scaleChange = newDistance / initialPinchDistance;
+        zoomLevel = Math.min(Math.max(zoomLevel * scaleChange, 1), 4);
+        lightboxImg.style.transform = `scale(${zoomLevel})`;
+        initialPinchDistance = newDistance;
+      }
+    }, { passive: false });
+
     lightbox.addEventListener('touchend', function (e) {
-      if (!isDragging) return;
-      const endX = e.changedTouches[0].screenX;
+      if (!isSingleTouch) {
+        isSingleTouch = false;
+        return;
+      }
+      const endX = e.changedTouches[0].clientX;
       const distance = endX - startX;
       if (Math.abs(distance) > 50) {
         if (distance > 0) {
@@ -180,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
           showImage(currentIndex + 1);
         }
       }
-      isDragging = false;
+      isSingleTouch = false;
     });
 
     // Drag (mouse) support for desktop
