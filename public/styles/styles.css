@@ -318,14 +318,10 @@ footer {
 }
 
 .lightbox img {
+  cursor: zoom-in;
+  transition: transform 0.1s ease;
   touch-action: none;
-}
-
-.lightbox img.zoomed {
-  cursor: zoom-out;
-  transform: scale(1.8);
-  max-width: none;
-  max-height: none;
+  user-select: none;
 }
 
 /* Scroll reveal */
