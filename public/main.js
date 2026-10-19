@@ -102,22 +102,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const lightboxImg = lightbox.querySelector('img');
     const closeBtn = lightbox.querySelector('.lightbox-close');
     
-    lightboxImg.addEventListener('click', function (e) {
-      e.stopPropagation(); // don't trigger the close-on-background-click
-      lightboxImg.classList.toggle('zoomed');
+        let zoomLevel = 1;
+
+    lightboxImg.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        zoomLevel = Math.min(zoomLevel + 0.2, 4); // scroll up = zoom in, max 4x
+      } else {
+        zoomLevel = Math.max(zoomLevel - 0.2, 1); // scroll down = zoom out, min 1x
+      }
+      lightboxImg.style.transform = `scale(${zoomLevel})`;
+      lightboxImg.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
     });
 
     let currentIndex = 0;
     let allImages = [];
 
-  function showImage(index) {
-   if (index < 0) index = allImages.length - 1;
-   if (index >= allImages.length) index = 0;
-   currentIndex = index;
-   lightboxImg.src = allImages[currentIndex].src;
-   lightboxImg.alt = allImages[currentIndex].alt;
-   lightboxImg.classList.remove('zoomed'); // reset zoom on image change
-  }
+      function showImage(index) {
+      if (index < 0) index = allImages.length - 1;
+      if (index >= allImages.length) index = 0;
+      currentIndex = index;
+      lightboxImg.src = allImages[currentIndex].src;
+      lightboxImg.alt = allImages[currentIndex].alt;
+      zoomLevel = 1;
+      lightboxImg.style.transform = 'scale(1)';
+      lightboxImg.style.cursor = 'zoom-in';
+    }
 
     galleryGrid.addEventListener('click', function (e) {
       if (e.target.tagName === 'IMG') {
