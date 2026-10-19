@@ -3,7 +3,7 @@
 // Shared JavaScript for all pages
 // ===================================================
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded'), function () {
 
   // 1. MOBILE MENU TOGGLE
   const menuToggle = document.querySelector('.menu-toggle');
@@ -347,4 +347,3 @@ document.addEventListener('DOMContentLoaded', function () {
     form.querySelectorAll('.field-error').forEach(function (el) { el.remove(); });
     form.querySelectorAll('input, textarea').forEach(function (el) { el.style.borderColor = ''; });
   }
-});
