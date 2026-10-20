@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
     revealTargets.forEach(function (el) { revealObserver.observe(el); });
   }
 
-    // ---------------------------------------------------
+  // ---------------------------------------------------
   // 5. GALLERY LIGHTBOX WITH ZOOM, PAN, SWIPE
   // ---------------------------------------------------
   const galleryGrid = document.querySelector('.gallery-grid');
@@ -258,26 +258,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-    // Drag (mouse) support for desktop
-    lightbox.addEventListener('mousedown', function (e) {
-      startX = e.screenX;
-      isDragging = true;
-    });
-
-    lightbox.addEventListener('mouseup', function (e) {
-      if (!isDragging) return;
-      const distance = e.screenX - startX;
-      if (Math.abs(distance) > 50) {
-        if (distance > 0) {
-          showImage(currentIndex - 1);
-        } else {
-          showImage(currentIndex + 1);
-        }
-      }
-      isDragging = false;
-    });
-  }
+  // ---------------------------------------------------
   // 6. CONTACT FORM — CONNECTED TO BACKEND
+  // ---------------------------------------------------
   const contactForm = document.querySelector('.contact-form');
 
   if (contactForm) {
